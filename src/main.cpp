@@ -4,6 +4,7 @@
 #include "./engine/stream/file.h"
 #include "./engine/core/inputs.h"
 #include "./engine/core/windows.h"
+#include "./engine/stream/memory.h"
 
 std::string DEFAULT_IN_OUT_ROUTE = "../../hola.txt";
 
@@ -62,38 +63,17 @@ struct testData {
 
 int main() {
     //test();
+    MemoryHandler::getSysInfo();
+    void *allocatedMemory = MemoryHandler::vAllocate(250);
+    if (allocatedMemory) {
+        std::cout << "Memory:" << allocatedMemory << std::endl;
 
-    File fileObj;
-    fileObj.open("../../hola.txt");
+        ((unsigned char*)allocatedMemory)[5] = 128;
 
-    // writing
-    //testData objData;
-   //objData.a = 10;
-    //objData.b = 5.5f;
+        std::cout << (int)((unsigned char*)allocatedMemory)[5] << "\n";
 
-    //fileObj.write(&objData, sizeof(objData));
-
-    //
-    std::vector<unsigned char> data;
-
-    if (fileObj.read(data)) {
-        std::cout << "data size (b): " << data.size() << std::endl;
-
-        if (data.size() >= sizeof(testData)) {
-            char* dataMap = fileObj.mapView();
-            if (dataMap != nullptr) {
-                strcpy(dataMap, "Hello World");
-
-                while(true) {
-                    std::cout << dataMap << "\n";
-                }
-            }
-        }
-    } else {
-        Logger::logError("Failed to read file");
+        MemoryHandler::freeMemory(allocatedMemory);
     }
-
-    fileObj.close();
 
     return 0;
 }
