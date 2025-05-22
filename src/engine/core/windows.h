@@ -2,6 +2,6 @@
 
 struct WinHandler {
 
-    static void show_screen_message(const char* message);
-    static void create_window();
+    static void showScreenMessage(std::string message, UINT type);
+    static void createWindow();
 };

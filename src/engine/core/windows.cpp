@@ -1,8 +1,9 @@
 #include <iostream>
 #include "./windows.h"
 
-void WinHandler::show_screen_message(const char* message) {
-    int status = MessageBoxA(0, message, "System Message", MB_OK);
+
+void WinHandler::showScreenMessage(std::string message, UINT type) {
+    int status = MessageBoxA(0, message.c_str(), "System Message", type);
     if (status == IDOK) {
         std::cout << "User clicked ok" << std::endl;
     } else {
@@ -10,6 +11,6 @@ void WinHandler::show_screen_message(const char* message) {
     }
 };
 
-void WinHandler::create_window() {
+void WinHandler::createWindow() {
     
 }

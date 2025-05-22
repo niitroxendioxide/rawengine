@@ -17,12 +17,14 @@ include_directories(
 
 file(GLOB CORE_SOURCES src/engine/core/*.cpp)
 file(GLOB RENDER_SOURCES src/engine/render/*.cpp)
+file(GLOB STREAM_SOURCES src/engine/stream/*.cpp)
 file(GLOB MAIN_SOURCE src/main.cpp)
 
 add_executable(${PROJECT_NAME} ${WIN32_FLAG}
     ${MAIN_SOURCE}
     ${CORE_SOURCES}
     ${RENDER_SOURCES}
+    ${STREAM_SOURCES}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE

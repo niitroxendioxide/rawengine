@@ -1,19 +1,18 @@
 #include <iostream>
 #include <Windows.h>
-#include "./engine/core/windows.h"
-#include "./engine/core/inputs.h"
-#include <string>
-#include <fstream>
-#include <thread>
-#include <mutex>
 #include <chrono>
+#include "./engine/stream/file.h"
+#include "./engine/core/inputs.h"
+#include "./engine/core/windows.h"
 
-std::mutex main_lock;
+std::string DEFAULT_IN_OUT_ROUTE = "../../hola.txt";
 
-void run_move_test() {
+void test() {
     bool program_active = true;
     int posx = 0;
     int posy = 0;
+
+    std::system("cls");
 
     auto start = std::chrono::high_resolution_clock::now();
     while(program_active) {
@@ -43,9 +42,7 @@ void run_move_test() {
             if (posy > 4) posy = 0;
             if (posy < 0) posy = 4;
 
-            main_lock.lock();
-
-            std::cout << std::endl << std::endl;
+            Logger::resetCursor();
 
             for (int y = 0; y < 5; y++) {
                 for (int x = 0; x < 5; x++) {
@@ -54,15 +51,25 @@ void run_move_test() {
 
                 std::cout << std::endl;
             }
-            main_lock.unlock();
         }
     }
 }
 
 int main() {
-    std::thread main(run_move_test);
+    //test();
 
-    main.join();
+    File fileObj;
+    fileObj.open(DEFAULT_IN_OUT_ROUTE);
+
+    std::vector<unsigned char> data;
+
+    fileObj.read(data);
+
+    std::cout << data.data() << std::endl;
+
+    std::cout << std::endl;
+
+    fileObj.close();
 
     return 0;
 }
