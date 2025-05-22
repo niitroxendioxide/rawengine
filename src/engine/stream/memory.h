@@ -4,8 +4,10 @@
 namespace MemoryHandler {
     SYSTEM_INFO SysInfo;
 
-    void getSysInfo() {
+    SYSTEM_INFO getSysInfo() {
         GetSystemInfo(&SysInfo);
+
+        return SysInfo;
     }
 
     size_t roundUp(size_t in) {

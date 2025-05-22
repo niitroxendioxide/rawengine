@@ -4,6 +4,7 @@
 #include "./engine/stream/file.h"
 #include "./engine/core/inputs.h"
 #include "./engine/core/windows.h"
+#include "./engine/core/pidhelper.h"
 #include "./engine/stream/memory.h"
 
 std::string DEFAULT_IN_OUT_ROUTE = "../../hola.txt";
@@ -56,24 +57,97 @@ void test() {
     }
 }
 
-struct testData {
-    int a;
-    float b;
-};
+void process_sniping() {
+    auto pid = PidHelper::findPidByName("troleo.exe");
+    if (pid) {
+        auto process = PidHelper::openProcessByPid(pid);
+
+        if (process) {
+            void *processMemAddress = 0;
+            std::cout << "Enter memory address to read: ";
+            std::cin >> processMemAddress;
+
+            int processData = 0;
+            ReadProcessMemory(process, processMemAddress, &processData, sizeof(processData), nullptr);
+
+            std::cout << "current process data: " << processData << '\n';
+
+            while (true) {
+                int newData = 25;
+                std::cin >> newData;
+
+                if (newData == 1) {
+                    break;
+                }
+
+                int success = WriteProcessMemory(process, processMemAddress, &newData, sizeof(newData), nullptr);
+                if (!success) {
+                    std::cout << "Error writing data" << std::endl;
+                }
+            }
+        }
+    }
+
+    std::cout << "Process sniping finished" << std::endl;
+}
+
+void snipe_process_from_pid(std::string process_name) {
+    auto pid = PidHelper::findPidByName(process_name.c_str());
+    if (pid) {
+        auto process = PidHelper::openProcessByPid(pid);
+
+        std::cout << "found process!" << std::endl;
+        if (process) {
+            SYSTEM_INFO SysInfo = MemoryHandler::getSysInfo();
+
+            MEMORY_BASIC_INFORMATION memInfo;
+            void *scanAddress = 0;
+
+            while (true) {
+                size_t readBytes = VirtualQueryEx(process, scanAddress, &memInfo, sizeof(MEMORY_BASIC_INFORMATION));
+                if (!readBytes) {continue;}
+
+                scanAddress = (char*)memInfo.BaseAddress + memInfo.RegionSize;
+
+                if (memInfo.State == MEM_COMMIT) {
+                    int val;
+                    ReadProcessMemory(process, scanAddress, &val, sizeof(val), nullptr);
+
+                    if (val != 0) {
+                        std::cout << "at: " << scanAddress << " ->" << val << std::endl;
+                    }
+                }
+            }
+        }
+    }
+}
 
 int main() {
     //test();
-    MemoryHandler::getSysInfo();
-    void *allocatedMemory = MemoryHandler::vAllocate(250);
-    if (allocatedMemory) {
-        std::cout << "Memory:" << allocatedMemory << std::endl;
+    /*PorkyBoiler pedroilet;
+    pedroilet.edad = 18;
+    pedroilet.name = "Porky";
 
-        ((unsigned char*)allocatedMemory)[5] = 128;
+    File f;
+    f.open("../../hola.bin");
 
-        std::cout << (int)((unsigned char*)allocatedMemory)[5] << "\n";
+    //f.write(&pedroilet, sizeof(pedroilet));
 
-        MemoryHandler::freeMemory(allocatedMemory);
+    std::vector<unsigned char> data;
+
+    if (f.read(data)) {
+        PorkyBoiler* recreado = reinterpret_cast<PorkyBoiler*>(data.data());
+
+        std::cout << recreado->name << std::endl;
     }
+
+    //*/
+    std::string pidName;
+
+    std::cin >> pidName;
+
+    snipe_process_from_pid(pidName);
+
 
     return 0;
 }
