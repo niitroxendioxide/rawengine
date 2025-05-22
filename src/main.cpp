@@ -102,20 +102,55 @@ void snipe_process_from_pid(std::string process_name) {
 
             MEMORY_BASIC_INFORMATION memInfo;
             void *scanAddress = 0;
+            std::vector<void*> addresses;
 
-            while (true) {
+            while (scanAddress < (char*)SysInfo.lpMaximumApplicationAddress) {
                 size_t readBytes = VirtualQueryEx(process, scanAddress, &memInfo, sizeof(MEMORY_BASIC_INFORMATION));
                 if (!readBytes) {continue;}
 
                 scanAddress = (char*)memInfo.BaseAddress + memInfo.RegionSize;
 
-                if (memInfo.State == MEM_COMMIT) {
-                    int val;
-                    ReadProcessMemory(process, scanAddress, &val, sizeof(val), nullptr);
+                if (memInfo.State == MEM_COMMIT && memInfo.Protect == PAGE_READWRITE) {
+                    std::vector<char> buffer(memInfo.RegionSize);
+                    SIZE_T bytesRead;
 
-                    if (val != 0) {
-                        std::cout << "at: " << scanAddress << " ->" << val << std::endl;
+                    int value_to_find;
+                    std::cout << "Input the value to find:";
+                    std::cin >> value_to_find;
+
+                    if (value_to_find == 0) {
+                        break;
                     }
+
+                    if (ReadProcessMemory(process, scanAddress, buffer.data(), memInfo.RegionSize, &bytesRead)) {
+                        for (size_t i = 0; i < bytesRead - sizeof(int); i += sizeof(int)) {
+                            int currentValue;
+                            memcpy(&currentValue, &buffer[i], sizeof(int));
+
+                            if (currentValue == value_to_find) {
+                                void* foundAddress = (char*)scanAddress + i;
+                                addresses.push_back(foundAddress);
+                                std::cout << "Found value at address: " << foundAddress << std::endl;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!addresses.empty()) {
+                int address_index;
+                std::cout << "Select address to modify (0-" << addresses.size()-1 << "): ";
+                std::cin >> address_index;
+
+                if (address_index < addresses.size()) {
+                    int new_value;
+                    std::cout << "New value: ";
+                    std::cin >> new_value;
+
+                    size_t bytesWritten;
+                    WriteProcessMemory(process, addresses[address_index], &new_value, sizeof(new_value), nullptr);
+                } else {
+                    std::cout << "Address out of range";
                 }
             }
         }
