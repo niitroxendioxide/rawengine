@@ -55,19 +55,43 @@ void test() {
     }
 }
 
+struct testData {
+    int a;
+    float b;
+};
+
 int main() {
     //test();
 
     File fileObj;
-    fileObj.open(DEFAULT_IN_OUT_ROUTE);
+    fileObj.open("../../hola.txt");
 
+    // writing
+    //testData objData;
+   //objData.a = 10;
+    //objData.b = 5.5f;
+
+    //fileObj.write(&objData, sizeof(objData));
+
+    //
     std::vector<unsigned char> data;
 
-    fileObj.read(data);
+    if (fileObj.read(data)) {
+        std::cout << "data size (b): " << data.size() << std::endl;
 
-    std::cout << data.data() << std::endl;
+        if (data.size() >= sizeof(testData)) {
+            char* dataMap = fileObj.mapView();
+            if (dataMap != nullptr) {
+                strcpy(dataMap, "Hello World");
 
-    std::cout << std::endl;
+                while(true) {
+                    std::cout << dataMap << "\n";
+                }
+            }
+        }
+    } else {
+        Logger::logError("Failed to read file");
+    }
 
     fileObj.close();
 

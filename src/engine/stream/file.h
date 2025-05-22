@@ -13,8 +13,12 @@ class File {
         bool read(std::vector<unsigned char>& data);
         bool write(void* buffer, size_t size);
         void close();
-
+        void createFileMapping();
+        char* mapView();
     private:
-        // none for now?
+        std::string file_route;
+        char* current_file_map_data;
         HANDLE current_handle;
+        HANDLE current_file_map;
+        DWORD current_open_type;
 };
